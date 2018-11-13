@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+import "city.proto";
+
+package com.seong.tsp.backend.proto.service;
+
+message Paths {
+    repeated City city = 1;
+}

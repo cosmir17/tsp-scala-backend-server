@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package com.seong.tsp.backend.proto.service;
+
+message City {
+    required string name = 1;
+    required float latitude = 2;
+    required float longitude = 3;
+}
