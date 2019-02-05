@@ -1,4 +1,4 @@
-Name : Seong Kwak (WORK IN PROGRESS)
+WORK IN PROGRESS
 
 Technologies : Scala 2.12, Akka, Akka Http, Protobuf, Kafka, Slick, Cassandra, Docker fabric8 plugin, functional and unit test automated, Gatling(NFT), ELK, Graphite and Grafana
 
