@@ -5,7 +5,7 @@ import cucumber.api.scala.{ScalaDsl, EN}
 import org.junit.Assert._
 
 
-class CassandraStepDefs extends ScalaDsl with EN {
+class PostgresStepDefs extends ScalaDsl with EN {
 
 
 }

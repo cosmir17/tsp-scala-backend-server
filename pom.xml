@@ -22,7 +22,7 @@
         <scala.version>2.12.8</scala.version>
         <scala.compat.version>2.12</scala.compat.version>
         <log4j2.version>2.8.2</log4j2.version>
-        <cassandra.version>3.2.0</cassandra.version>
+        <postgres.version>3.2.0</postgres.version>
         <akka.version>2.5.23</akka.version>
         <akkaHttp.version>10.1.8</akkaHttp.version>
         <cucumber.version>4.3.1</cucumber.version>
@@ -70,11 +70,6 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-persistence-cassandra_${scala.compat.version}</artifactId>
-            <version>0.59</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-persistence-query_${scala.compat.version}</artifactId>
             <version>${akka.version}</version>
         </dependency>
@@ -115,28 +110,7 @@
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.11.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.pureconfig</groupId>
-            <artifactId>pureconfig_${scala.compat.version}</artifactId>
-            <version>0.11.0</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.timepit</groupId>
-            <artifactId>refined_${scala.compat.version}</artifactId>
-            <version>0.9.6</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.timepit</groupId>
-            <artifactId>refined-cats_2.12</artifactId>
-            <version>0.9.6</version>
-        </dependency>
 
-
-        <dependency>
-            <groupId>com.trueaccord.scalapb</groupId>
-            <artifactId>scalapbc_${scala.compat.version}</artifactId>
-            <version>0.6.7</version>
-        </dependency>
         <!--<dependency>-->
             <!--<groupId>net.cakesolutions</groupId>-->
             <!--<artifactId>scala-kafka-client-akka_${scala.compat.version}</artifactId>-->
@@ -203,12 +177,6 @@
 
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-http-testkit_${scala.compat.version}</artifactId>
-            <version>${akkaHttp.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-testkit_${scala.compat.version}</artifactId>
             <version>${akka.version}</version>
             <scope>test</scope>
@@ -220,62 +188,6 @@
         <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
-                <executions>
-                    <execution>
-                        <id>mkdir-generated-sources</id>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <target>
-                                <mkdir dir="${project.build.directory}/generated-sources/proto"/>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <!-- Generating Scala code on Windows requires Python 2.x to be installed on your system. -->
-                        <id>generate-scala-protobuf-classes</id>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <mainClass>com.trueaccord.scalapb.ScalaPBC</mainClass>
-                            <includePluginDependencies>true</includePluginDependencies>
-                            <classpathScope>compile</classpathScope>
-                            <executableDependency>
-                                <groupId>com.trueaccord.scalapb</groupId>
-                                <artifactId>scalapbc_2.12</artifactId>
-                            </executableDependency>
-                            <arguments>
-                                <argument>--proto_path=${project.basedir}/src/main/proto</argument>
-                                <argument>--scala_out=${project.build.directory}/generated-sources/proto</argument>
-                                <argument>${project.basedir}/src/main/proto/abc.proto</argument>
-                                <argument>${project.basedir}/src/main/proto/tsp.proto</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.trueaccord.scalapb</groupId>
-                        <artifactId>scalapbc_2.12</artifactId>
-                        <version>0.6.7</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -295,7 +207,7 @@
                     <junitxml>.</junitxml>
                     <filereports>TestSuiteReport.txt</filereports>
                     <!-- Comma separated list of JUnit test class names to execute -->
-                    <jUnitClasses>samples.AppTest</jUnitClasses>
+<!--                    <jUnitClasses>com.seong.tsp.backend.MainTest.scala</jUnitClasses>-->
                 </configuration>
                 <executions>
                     <execution>
@@ -353,13 +265,44 @@
             </plugin>
 
 
-
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.30.0</version>
                 <configuration>
                     <images>
+
+                        <image>
+                            <name>wurstmeister/zookeeper</name>
+                            <alias>zookeeper</alias>
+                            <run>
+                                <ports>
+                                    <port>2181:2181</port>
+                                </ports>
+
+                                <wait>
+                                    <tcp>
+                                        <mode>mapped</mode>
+                                        <ports>
+                                            <port>2181</port>
+                                        </ports>
+                                    </tcp>
+                                    <time>60000</time>
+                                </wait>
+
+                                <log>
+                                    <enabled>true</enabled>
+                                    <driver>
+                                        <name>gelf</name>
+                                        <opts>
+                                            <tag>zookeeper</tag>
+                                            <gelf-address>udp://localhost:12202</gelf-address>
+                                        </opts>
+                                    </driver>
+                                </log>
+                            </run>
+
+                        </image>
 
                         <image>
                             <name>wurstmeister/kafka</name>
@@ -370,19 +313,22 @@
                                 </ports>
                                 <env>
                                     <TZ>GB</TZ>
+                                    <KAFKA_ADVERTISED_HOST_NAME>kafka</KAFKA_ADVERTISED_HOST_NAME>
+                                    <KAFKA_ZOOKEEPER_CONNECT>zookeeper:2181</KAFKA_ZOOKEEPER_CONNECT>
+                                    <KAFKA_ADVERTISED_PORT>9092</KAFKA_ADVERTISED_PORT>
                                 </env>
 
                                 <wait>
-                                <tcp>
-                                <ports>
-                                <port>9092</port>
-                                </ports>
-                                </tcp>
-                                <time>60000</time>
+                                    <tcp>
+                                        <mode>mapped</mode>
+                                        <ports>
+                                        <port>9092</port>
+                                        </ports>
+                                    </tcp>
+                                    <time>60000</time>
                                 </wait>
                                 <log>
                                     <enabled>true</enabled>
-                                    <!--<file>${project.basedir}/logs/tsp-scala-backend-server.log</file>-->
                                     <driver>
                                         <name>gelf</name>
                                         <opts>
@@ -391,11 +337,13 @@
                                         </opts>
                                     </driver>
                                 </log>
+                                <links>
+                                <link>zookeeper</link>
+                                </links>
                             </run>
                         </image>
 
                         <image>
-                            <!--<name>docker.elastic.co/elasticsearch/elasticsearch:5.4.0</name>-->
                             <name>elasticsearch</name>
                             <alias>elasticsearch</alias>
                             <run>
@@ -408,19 +356,19 @@
                                     <!--<MAX_MAP_COUNT>400144</MAX_MAP_COUNT>-->
                                 </env>
                                 <wait>
-                                <tcp>
-                                <ports>
-                                <port>9200</port>
-                                </ports>
-                                </tcp>
-                                <time>60000</time>
+                                    <tcp>
+                                        <mode>mapped</mode>
+                                        <ports>
+                                            <port>9200</port>
+                                        </ports>
+                                    </tcp>
+                                    <time>60000</time>
                                 </wait>
                             </run>
                         </image>
 
 
                         <image>
-                            <!--<name>docker.elastic.co/logstash/logstash:5.4.0</name>-->
                             <name>logstash</name>
                             <alias>logstash</alias>
                             <run>
@@ -445,20 +393,24 @@
                                 </volumes>
                                 <wait>
                                     <tcp>
-                                    <ports>
-                                    <port>9600</port>
-                                    </ports>
+                                        <mode>mapped</mode>
+                                        <ports>
+                                            <port>5044</port>
+<!--                                            <port>12201</port>-->
+                                        </ports>
                                     </tcp>
-                                    <udp>
-                                    <ports>
-                                    <port>12201</port>
-                                    </ports>
-                                    </udp>
                                     <time>60000</time>
                                 </wait>
                                 <cmd>logstash -f /config-dir/logstash.conf</cmd>
                                 <log>
                                     <enabled>true</enabled>
+                                    <driver>
+                                        <name>gelf</name>
+                                        <opts>
+                                            <tag>logstash</tag>
+                                            <gelf-address>udp://localhost:12202</gelf-address>
+                                        </opts>
+                                    </driver>
                                 </log>
                             </run>
                         </image>
@@ -481,59 +433,67 @@
                                 </env>
                                 <wait>
                                 <tcp>
+                                    <mode>mapped</mode>
                                 <ports>
                                 <port>5601</port>
                                 </ports>
                                 </tcp>
                                 <time>60000</time>
                                 </wait>
-                            </run>
-                        </image>
 
-                        <image>
-                            <name>cassandra</name>
-                            <alias>cassandra</alias>
-                            <run>
-                                <ports>
-                                    <port>9042:9042</port>
-                                </ports>
-                                <!--<hostname>cassandra1</hostname>-->
-                                <!--<memory>1073741824</memory>-->
-                                <env>
-                                    <TZ>GB</TZ>
-                                    <!--<MAX_HEAP_SIZE>512M</MAX_HEAP_SIZE>-->
-                                    <!--<HEAP_NEWSIZE>170M</HEAP_NEWSIZE>-->
-                                </env>
-                                <links>
-                                    <link>logstash</link>
-                                </links>
-                                <wait>
-                                <tcp>
-                                <ports>
-                                <port>9042</port>
-                                </ports>
-                                </tcp>
-                                <time>40000</time>
-                                </wait>
                                 <log>
                                     <enabled>true</enabled>
                                     <!--<file>${project.basedir}/logs/tsp-scala-backend-server.log</file>-->
                                     <driver>
                                         <name>gelf</name>
                                         <opts>
-                                            <tag>cassDB</tag>
+                                            <tag>kafka</tag>
                                             <gelf-address>udp://localhost:12202</gelf-address>
                                         </opts>
                                     </driver>
                                 </log>
-                                <volumes>
-                                    <bind>
-                                        <volume>
-                                            ${project.basedir}/config_files/setup.cql:/var/setup.cql
-                                        </volume>
-                                    </bind>
-                                </volumes>
-                                <cmd>cqlsh -f /var/setup.cql</cmd>
+
+                            </run>
+                        </image>
+
+                        <image>
+                            <name>postgres</name>
+                            <alias>postgres</alias>
+                            <run>
+                                <ports>
+                                    <port>7000:8080</port>
+                                </ports>
+                                <hostname>postgres1</hostname>
+                                <memory>1073741824</memory>
+                                <env>
+                                    <TZ>GB</TZ>
+<!--                                    <MAX_HEAP_SIZE>512M</MAX_HEAP_SIZE>-->
+<!--                                    <HEAP_NEWSIZE>170M</HEAP_NEWSIZE>-->
+                                </env>
+                                <links>
+                                    <link>logstash</link>
+                                </links>
+                                <wait>
+                                    <tcp>
+                                        <mode>mapped</mode>
+                                    <ports>
+                                    <port>8080</port>
+                                    </ports>
+                                    </tcp>
+                                    <time>40000</time>
+                                </wait>
+                                <log>
+                                    <enabled>true</enabled>
+                                    <driver>
+                                        <name>gelf</name>
+                                        <opts>
+                                            <tag>postgres</tag>
+                                            <gelf-address>udp://localhost:12202</gelf-address>
+                                        </opts>
+                                    </driver>
+                                </log>
+
+
                             </run>
                         </image>
 
@@ -555,14 +515,15 @@
                                     <link>logstash</link>
                                 </links>
                                 <wait>
-                                <tcp>
-                                <ports>
-                                <port>80</port>
-                                <port>81</port>
-                                <port>2003</port>
-                                </ports>
-                                </tcp>
-                                <time>50000</time>
+                                    <tcp>
+                                        <mode>mapped</mode>
+                                    <ports>
+                                    <port>80</port>
+                                    <port>81</port>
+                                    <port>2003</port>
+                                    </ports>
+                                    </tcp>
+                                    <time>50000</time>
                                 </wait>
                                 <volumes>
                                     <bind>
@@ -573,7 +534,6 @@
                                 </volumes>
                                 <log>
                                     <enabled>true</enabled>
-                                    <!--<file>${project.basedir}/logs/tsp-scala-backend-server.log</file>-->
                                     <driver>
                                         <name>gelf</name>
                                         <opts>
@@ -608,7 +568,7 @@
                                         -Xdebug
                                         -Xrunjdwp:transport=dt_socket,address=8008,server=y,suspend=n
                                         <!-- -Dconfig.mockserver.url=http://mocks-->
-                                        -Dconfig.cassandra.url=cassandra
+                                        -Dconfig.postgres.url=postgres
                                         -Dconfig.graphite.url=grafana_graphite
                                         -DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector
                                         -Dlogfolderpath=/var/log/tsp-scala-backend-server
@@ -616,18 +576,19 @@
                                 </env>
                                 <!--<cmd>/bin/sh -c "while true; do echo My Message \$RANDOM; sleep 1; done;"</cmd>-->
                                 <links>
-                                    <link>cassandra</link>
+                                    <link>postgres</link>
                                     <link>logstash</link>
                                     <link>grafana_graphite</link>
                                 </links>
                                 <wait>
-                                <tcp>
-                                <ports>
-                                <port>8080</port>
-                                <port>8008</port>
-                                </ports>
-                                </tcp>
-                                <time>40000</time>
+                                    <tcp>
+                                        <mode>mapped</mode>
+                                    <ports>
+                                    <port>8080</port>
+                                    <port>8008</port>
+                                    </ports>
+                                    </tcp>
+                                    <time>40000</time>
                                 </wait>
                                 <log>
                                     <enabled>true</enabled>
