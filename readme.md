@@ -1,3 +1,6 @@
+=> Docker Developement Environment for Integration Test & CI/CD.
+You can either run your integration tests (with spawning/destroying docker containers automatically) manually from Intellij or by one command on terminal.
+
 Travelling Salesman Problem, Scala backend server.
 This is to find the shortest(optimum, heuristics) Hamiltonian path.
 
@@ -18,7 +21,7 @@ can be useful when things not working after installing docker.
 
 1. Please run 'sudo sysctl -w vm.max_map_count=262144' on your host machine before running this program. (this is for elk)
 2. mvn clean package docker:run //this runs junit tests
-3. run functional test //feature file
+3. run feature files on Intellij or, mvn verify -p integration-test [not ready yet]
 4. kibana, showing elk is working. provide index pattern.
 5. show graphite
 6. grafana-datastore
@@ -51,3 +54,6 @@ java
 -Dconfig.graphite.url=172.17.0.6
 -Xrunjdwp:transport=dt_socket,address=5004,server=y,suspend=n
 -jar NAME_OF_THE_FILE
+
+To run integration tests on Command (as well as running the containers)
+mvn package  [not ready yet]
